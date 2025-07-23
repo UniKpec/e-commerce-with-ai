@@ -1,0 +1,10 @@
+.login:hover, .signup:hover,.bagdash:hover{
+    color: #FF6500 !important;
+}
+.what_read:hover{
+    color: #77BEF0 !important;
+}
+
+.logout:hover {
+    color: red;
+}
