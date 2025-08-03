@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
-from .models import ProfilYayinci,KitapOlusturma
+from .models import ProfilYayinci,KitapOlusturma,Sepet,AdresBilgileri,OdemeBilgileri
 
 class RegisterYayinci(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,validators=[UniqueValidator(queryset=User.objects.all(),message="Zaten boyle bir Yayıncı Emaili Kayıtlı.")])
@@ -106,9 +106,9 @@ class RegisterKitapOlusturma(serializers.ModelSerializer):
     class Meta:
         model = KitapOlusturma
         fields = "__all__"
+        read_only_fields = ["yayinci","olusturulma_tarihi"] #sistem kendisi gireceği için kullanıcının doldurmasına gerek yok.
 
 
-   
     def validate_sayfa_sayısı(self, value):
         if value < 0:
             raise serializers.ValidationError("Sayfa sayısı 0'dan küçük olamaz.")
@@ -125,6 +125,7 @@ class RegisterKitapOlusturma(serializers.ModelSerializer):
         valid_choice = [choice[0] for choice in KitapOlusturma.kitapTuru]
         if value not in valid_choice:
             raise serializers.ValidationError("Geçersiz Kitap türü seçildi.")
+        return value
    
     def validate_kitap_acıklaması(self,value):
         listString = str(value).split()
@@ -133,8 +134,37 @@ class RegisterKitapOlusturma(serializers.ModelSerializer):
             number = number+ 1
         if number < 30:
             raise serializers.ValidationError("En az 30 kelime yazınız.")
+        return value
+        
         
     def create(self, validated_data):
         return KitapOlusturma.objects.create(**validated_data)
         
 
+
+class RegisterSepet(serializers.ModelSerializer):
+    toplam_fiyat = serializers.SerializerMethodField() #property'deki toplam_fiyat metodunu almak için
+
+    class Meta:
+        model = Sepet
+        fields = "__all__"
+        read_only_fields = ["ekleme_tarihi","toplam_fiyat"]
+
+    def get_toplam_fiyat(self,obj):
+        return obj.toplam_fiyat
+
+
+
+class RegisterAdresBilgileri(serializers.ModelSerializer):
+    class Meta:
+        model = AdresBilgileri
+        fields = ["ad","soyad","sehir","ilce","ev_adres","telefon_numarisi"]
+        read_only_fields = ["musteri"]
+
+        
+
+class RegisterOdemeBilgileri(serializers.ModelSerializer):
+    class Meta:
+        model=OdemeBilgileri
+        fields = ["kart_numarasi","cvv","son_kullanma_tarihi"]
+        read_only_fields = ["adres","kullanici"]

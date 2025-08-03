@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [  
     "shop.apps.ShopConfig",
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +58,11 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+}
+
+SIMPLE_JWT = {
+    "BLACKLIST_AFTER_ROTATION" : True,
+    "ROTATE_REFRESH TOKEN":True,
 }
 
 
