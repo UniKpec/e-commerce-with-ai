@@ -76,6 +76,26 @@ class KitapOlusturmaView(APIView):
             return Response(serializers_kitap_olusturma.data,status=status.HTTP_201_CREATED)
         return Response(serializers_kitap_olusturma.errors,status=status.HTTP_400_BAD_REQUEST)
     
+class KitapListelemeView(APIView):
+    def get(self,request):
+
+        kitaplar = KitapOlusturma.objects.all()
+
+        serializers = RegisterKitapOlusturma(kitaplar,many=True)
+
+        return Response(serializers.data,status=status.HTTP_200_OK)
+    
+class KitapDetayView(APIView):
+    def get(self,requesxt,pk):
+        try:
+            kitap = KitapOlusturma.objects.get(pk=pk)
+        except KitapOlusturma.DoesNotExist:
+            return Response({"detail":"kitap bulunumadı."},status=status.HTTP_404_NOT_FOUND)
+
+        serializers = RegisterKitapOlusturma(kitap)
+        kitap_data = serializers.data
+        return Response({"kitap":kitap_data},status=status.HTTP_200_OK)
+
 
 class SepetEkeleme(APIView):
     permission_classes = [IsAuthenticated] #sepete eklemesi için giriş yapmış veyahut kayıtlı olması ilk şartımız.
