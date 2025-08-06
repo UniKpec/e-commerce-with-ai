@@ -4,6 +4,7 @@ from rest_framework import status,permissions
 from rest_framework.permissions import IsAuthenticated
 from .models import ProfilYayinci,KitapOlusturma,Sepet
 from .serializers import RegisterSerializers,RegisterYayinci,RegisterKitapOlusturma, RegisterSepet,RegisterOdemeBilgileri,RegisterAdresBilgileri#aynı dosyadan import ettğimiz için .serializers koyduk.
+from .services import kitap_önerilerini_alma
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 
@@ -146,13 +147,13 @@ class SatinAlView(APIView):
                 return Response({"detail":f"{kitap.kitap_ismi} kitabın stok adedini kontrol ediniz."},status=status.HTTP_400_BAD_REQUEST)
             
 
-            for oge in sepet_ogeleri:
-                kitap = oge.kitap
-                kitap.stok_adedi -= oge.adet #kitabın stok adedini düşürüyoruz.
-                kitap.save()
-                oge.delete()#sepetten ürünü siliyoruz.
+        for oge in sepet_ogeleri:
+            kitap = oge.kitap
+            kitap.stok_adedi -= oge.adet #kitabın stok adedini düşürüyoruz.
+            kitap.save()
+            oge.delete()#sepetten ürünü siliyoruz.
             
-            return Response({"message":"Satın alımı başırılı şekilde gerçekleşmiştir."},)#başarılı durumlarda status code yazmamıza gerek yok.
+        return Response({"message":"Satın alımı başırılı şekilde gerçekleşmiştir."},)#başarılı durumlarda status code yazmamıza gerek yok.
         
             
 
@@ -177,6 +178,21 @@ class SepettenVeriSilme(APIView):
             return Response({"detail":"Kitap sepette bulunamadı."},status=status.HTTP_404_NOT_FOUND)
         
 
+
+
+class GeminiView(APIView):
+    def post(self,request):
+        kitap_yazar = request.data.get("kitap_yazar")
+        kitap_turu = request.data.get("kitap_turu")
+        kitap_sayfa = request.data.get("kitap_sayfa")
+    
+        if not all([kitap_yazar,kitap_turu,kitap_sayfa]):
+            return Response({"error:" "Lütfen tüm alanları doldurunuz."},status=status.HTTP_400_BAD_REQUEST)
+        
+
+        öneriler = kitap_önerilerini_alma(kitap_yazar=kitap_yazar,kitap_turu=kitap_turu,kitap_sayfa=kitap_sayfa)
+
+        return Response(öneriler, status=status.HTTP_200_OK)
 
 
 class LogOutView(APIView):
