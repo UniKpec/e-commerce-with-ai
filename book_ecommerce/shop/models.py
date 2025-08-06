@@ -26,8 +26,9 @@ class KitapOlusturma(models.Model):
         ("EKONOMI","Ekonomi"),
         ("FELSEFE","Felsefe"),
     ]
-    yayinci = models.ForeignKey(User, on_delete=models.CASCADE)#bir yazarın birden çok eseri olabilir. #userdan silinirse yayincinin yayınladığı kitaplar da silinsin diye models.CASCADE yazıyoruz.
+    yayinci = models.ForeignKey(ProfilYayinci, on_delete=models.CASCADE)#bir yazarın birden çok eseri olabilir. #userdan silinirse yayincinin yayınladığı kitaplar da silinsin diye models.CASCADE yazıyoruz.
     kitap_ismi = models.CharField(max_length=100)
+    kitap_isbn = models.CharField(max_length=13,unique=True,null=False)
     kitap_yazar_ismi = models.CharField(max_length=100)
     kitap_acıklması = models.TextField(max_length=300)
     kitap_fotografı = models.ImageField(null=True,blank=True)

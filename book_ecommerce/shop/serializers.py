@@ -74,7 +74,7 @@ class RegisterSerializers(serializers.ModelSerializer):
     def validate_username(self,value):
         if any(char in value for char in [".","?","@","/"]):
             raise serializers.ValidationError("Kullanacı adınızda noktalama işaretleri kullanmayınız.")
-    
+        return value
 
     def validate_password(self,value):
         if len(value) < 12:

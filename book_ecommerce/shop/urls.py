@@ -1,14 +1,15 @@
-from .views import RegisterView,YayinciView,LoginView,LogInYayinci,KitapOlusturmaView,LogOutView,SepetEkeleme,SepetiListeleView,SatinAlView,SepettenVeriSilme,KitapListelemeView,KitapDetayView,GeminiView
+from .views import RegisterView,YayinciView,LoginView,LogInYayinci,KitapOlusturmaView,LogOutView,SepetEkeleme,SepetiListeleView,SatinAlView,SepettenVeriSilme,KitapListelemeView,KitapDetayView,GeminiView,FiltrelemeView
 from django.urls import path
 
 app_name = 'shop'
 
 urlpatterns = [
     path("kayit/",RegisterView.as_view(),name="musteri-kayit"),
-    path("giris/",LoginView.as_view(),name="giris-kayit"),
+    path("giris/",LoginView.as_view(),name="musteri-giris"),
     path("yayinci/kayit/",YayinciView.as_view(),name="yayinci-kayit"),
     path("kitaplar/",KitapListelemeView.as_view(),name="kitaplar"),
     path("yayinci/giris/",LogInYayinci.as_view(),name="yayinci-giris"),
+    path("kitap/filtreleme/",FiltrelemeView.as_view(),name="filtreleme-kitap"),
     path("bugün_ne_okusam/",GeminiView.as_view(),name="bugün-ne-okusam"),
     path("yayinci/kitap_ekleme/",KitapOlusturmaView.as_view(),name="yayinci-kitap-eklemesi"),
     path("kitaplar/<int:pk>/",KitapDetayView.as_view(),name="kitap-detay"),

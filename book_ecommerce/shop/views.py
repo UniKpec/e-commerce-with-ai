@@ -73,10 +73,16 @@ class KitapOlusturmaView(APIView):
     def post(self,request):
         serializers_kitap_olusturma = RegisterKitapOlusturma(data=request.data)
         if serializers_kitap_olusturma.is_valid():
-            serializers_kitap_olusturma.save()
+            try:
+                profil_yayinci = ProfilYayinci.objects.get(user=request.user)
+            except ProfilYayinci.DoesNotExist:
+                return Response({"error":"Yayıncı bulunamadı."},status=status.HTTP_403_FORBIDDEN)
+            
+            serializers_kitap_olusturma.save(yayinci=profil_yayinci)
             return Response(serializers_kitap_olusturma.data,status=status.HTTP_201_CREATED)
         return Response(serializers_kitap_olusturma.errors,status=status.HTTP_400_BAD_REQUEST)
     
+
 class KitapListelemeView(APIView):
     def get(self,request):
 
@@ -177,6 +183,28 @@ class SepettenVeriSilme(APIView):
         except Sepet.DoesNotExist:
             return Response({"detail":"Kitap sepette bulunamadı."},status=status.HTTP_404_NOT_FOUND)
         
+class FiltrelemeView(APIView):
+    
+    def get(self,request):#get isteğiyle gelen url kısmındaki değerini alıyoruz.
+        kitap_turu = request.query_params.get('kitap_turu',None)#Eğer bu parametre yoksa url kısmında None dön.
+        siralama = request.query_params.get('siralama',None)#params'ın key degerleri 
+
+        querySet = KitapOlusturma.objects.all()
+
+        if kitap_turu:
+            querySet = querySet.filter(kitap_turu__iexact=kitap_turu)
+
+        if siralama == 'fiyat_asc':
+            querySet = querySet.order_by('kitap_fiyat')
+        elif siralama == 'fiyat_desc':
+            querySet = querySet.order_by('-kitap_fiyat')
+
+        
+        serializers = RegisterKitapOlusturma(querySet,many=True)
+
+        return Response(serializers.data,status=status.HTTP_200_OK)#get isteklerin sonucunda status code'a gerek olmayabilir ama yine de 200 döndürebiliriz.
+
+
 
 
 
@@ -193,6 +221,7 @@ class GeminiView(APIView):
         öneriler = kitap_önerilerini_alma(kitap_yazar=kitap_yazar,kitap_turu=kitap_turu,kitap_sayfa=kitap_sayfa)
 
         return Response(öneriler, status=status.HTTP_200_OK)
+
 
 
 class LogOutView(APIView):
