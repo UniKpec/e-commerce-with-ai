@@ -1,4 +1,4 @@
-from .views import RegisterView,YayinciView,LoginView,LogInYayinci,KitapOlusturmaView,LogOutView,SepetEkeleme,SepetiListeleView,SatinAlView,SepettenVeriSilme,KitapListelemeView,KitapDetayView,GeminiView,FiltrelemeView
+from .views import RegisterView,YayinciView,LoginView,LogInYayinci,KitapOlusturmaView,LogOutView,SepetEkeleme,SepetiListeleView,SatinAlView,SepettenVeriSilme,KitapListelemeView,KitapDetayView,GeminiView,FiltrelemeView,BilgilerimView,SiparislerimView,SiparisDetayView
 from django.urls import path
 
 app_name = 'shop'
@@ -14,8 +14,11 @@ urlpatterns = [
     path("yayinci/kitap_ekleme/",KitapOlusturmaView.as_view(),name="yayinci-kitap-eklemesi"),
     path("kitaplar/<int:pk>/",KitapDetayView.as_view(),name="kitap-detay"),
     path("cikis/", LogOutView.as_view(),name="musteri-yayinci-cikis"),
+    path("bilgilerim/",BilgilerimView.as_view(),name="musteri-bilgileris"),
     path("musteri/sepet_ekleme/",SepetEkeleme.as_view(),name="musteri-sepet-ekleme."),
     path("musteri/sepet_liste/",SepetiListeleView.as_view(),name="musteri-sepet-liste"),
-    path("muster/satin_al/",SatinAlView.as_view(),name="musteri-satin-al"),
-    path("musteri/sepetten_kitap_sil/",SepettenVeriSilme.as_view(),name="sepetten-kitap-silme")
+    path("musteri/satin_al/",SatinAlView.as_view(),name="musteri-satin-al"),
+    path("musteri/sepetten_kitap_sil/<int:kitap_id>/",SepettenVeriSilme.as_view(),name="sepetten-kitap-silme"),
+    path("siparislerim",SiparislerimView.as_view(),name="musteri-siparis"),
+    path("siparis_detay/<int:siparis_id>",SiparisDetayView.as_view(),name="siparis-detay")
 ]

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
-from .models import ProfilYayinci,KitapOlusturma,Sepet,AdresBilgileri,OdemeBilgileri
+from .models import ProfilYayinci,KitapOlusturma,Sepet,AdresBilgileri,SiparisDetay,Siparisimler
 
 class RegisterYayinci(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,validators=[UniqueValidator(queryset=User.objects.all(),message="Zaten boyle bir Yayıncı Emaili Kayıtlı.")])
@@ -55,49 +55,49 @@ class RegisterYayinci(serializers.ModelSerializer):
 
 
 class RegisterSerializers(serializers.ModelSerializer):
-    email = serializers.EmailField(required = True, validators =[UniqueValidator(queryset=User.objects.all(),message="Bu email zaten kullanılıyor")])
-    username = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all(),message="Bu kullanacı zaten alınmış.")])
-    password = serializers.CharField(write_only = True)
-    password2 = serializers.CharField(write_only = True)
+        email = serializers.EmailField(required = True, validators =[UniqueValidator(queryset=User.objects.all(),message="Bu email zaten kullanılıyor")])
+        username = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all(),message="Bu kullanacı zaten alınmış.")])
+        password = serializers.CharField(write_only = True)
+        password2 = serializers.CharField(write_only = True)
 
-    class Meta:
-        model = User
-        fields = ["email","username","password","password2"]
+        class Meta:
+            model = User
+            fields = ["email","username","password","password2"]
 
 
-    def validate_email(self,value): #validate_<field_name>(self, value)(Field-level )
-        if "@gmail.com"  not in value and "@outlook.com" not in value:
-            raise serializers.ValidationError("Sadece gmail(@gmail) ve outlook(@outlook) formatında giriniz.")
-        return value
-    
+        def validate_email(self,value): #validate_<field_name>(self, value)(Field-level )
+            if "@gmail.com"  not in value and "@outlook.com" not in value:
+                raise serializers.ValidationError("Sadece gmail(@gmail) ve outlook(@outlook) formatında giriniz.")
+            return value
+        
 
-    def validate_username(self,value):
-        if any(char in value for char in [".","?","@","/"]):
-            raise serializers.ValidationError("Kullanacı adınızda noktalama işaretleri kullanmayınız.")
-        return value
+        def validate_username(self,value):
+            if any(char in value for char in [".","?","@","/"]):
+                raise serializers.ValidationError("Kullanacı adınızda noktalama işaretleri kullanmayınız.")
+            return value
 
-    def validate_password(self,value):
-        if len(value) < 12:
-            raise serializers.ValidationError("Lütfen en az 12 karakter giriniz.")
-        if "!" not in value or "." not in value:
-            raise serializers.ValidationError("Lütfen en az 1 tane ! ve . kullananız.") 
-        return value
-    
-    def validate(self, data): #dict formatında.
-        if data["password"] != data["password2"]:
-            raise serializers.ValidationError("Şifreler eşleşmiyor.")
-        return data
-    
-    
-    def create(self, validated_data):
-        validated_data.pop("password2") #user modelinde gözükmüyor bu.
-        print("Serializer create metodu validated_data:", validated_data)
-        user =User.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"], 
-            password=validated_data["password"],
-        )
-        return user
+        def validate_password(self,value):
+            if len(value) < 12:
+                raise serializers.ValidationError("Lütfen en az 12 karakter giriniz.")
+            if "!" not in value or "." not in value:
+                raise serializers.ValidationError("Lütfen en az 1 tane ! ve . kullananız.") 
+            return value
+        
+        def validate(self, data): #dict formatında.
+            if data["password"] != data["password2"]:
+                raise serializers.ValidationError("Şifreler eşleşmiyor.")
+            return data
+        
+        
+        def create(self, validated_data):
+            validated_data.pop("password2") #user modelinde gözükmüyor bu.
+            print("Serializer create metodu validated_data:", validated_data)
+            user =User.objects.create_user(
+                username=validated_data["username"],
+                email=validated_data["email"], 
+                password=validated_data["password"],
+            )
+            return user
 
 
 
@@ -142,12 +142,18 @@ class RegisterKitapOlusturma(serializers.ModelSerializer):
         
 
 
+class KitapSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = KitapOlusturma
+        fields = ['id', 'kitap_ismi', 'kitap_yazar_ismi', 'kitap_fiyat', 'kitap_fotografı'] 
+
+
 class RegisterSepet(serializers.ModelSerializer):
     toplam_fiyat = serializers.SerializerMethodField() #property'deki toplam_fiyat metodunu almak için
-
+    kitap = KitapSerializers()
     class Meta:
         model = Sepet
-        fields = "__all__"
+        fields =  ["id", "musteri", "kitap", "adet", "ekleme_tarihi", "toplam_fiyat"]
         read_only_fields = ["ekleme_tarihi","toplam_fiyat"]
 
     def get_toplam_fiyat(self,obj):
@@ -155,16 +161,41 @@ class RegisterSepet(serializers.ModelSerializer):
 
 
 
-class RegisterAdresBilgileri(serializers.ModelSerializer):
+class RegisterAdresveOdemeBilgileri(serializers.ModelSerializer):
     class Meta:
         model = AdresBilgileri
-        fields = ["ad","soyad","sehir","ilce","ev_adres","telefon_numarisi"]
+        fields = ["ad","soyad","sehir","ilce","ev_adres","telefon_numarisi","kart_numarisi","cvv","son_kullanma_tarihi"]
         read_only_fields = ["musteri"]
 
+        def create(self, validated_data):
+            adres_bilgileri = AdresBilgileri.objects.create(**validated_data)
+            return adres_bilgileri
         
 
-class RegisterOdemeBilgileri(serializers.ModelSerializer):
+
+
+#Siparisteki tek bir ürünün bilgilerini vermek için
+class RegisterSiparisDetay(serializers.ModelSerializer):
+
+    kitap_ismi = serializers.CharField(source = 'kitap.kitap_ismi',read_only=True)
+    kitap_fotografı = serializers.CharField(source = 'kitap.kitap_fotografı')
+
     class Meta:
-        model=OdemeBilgileri
-        fields = ["kart_numarasi","cvv","son_kullanma_tarihi"]
-        read_only_fields = ["adres","kullanici"]
+        model = SiparisDetay
+        fields = ['kitap_ismi','kitap_fotoğrafı','adet','fiyat']
+
+#tek bir siparisteki ürünleri vermek için
+class RegisterSiparis(serializers.ModelSerializer):
+
+    detaylar = RegisterSiparisDetay(many=True,read_only=True)
+
+    class Meta:
+        model = Siparisimler
+        fields = ['id','siparis_tarihi','toplam_tutar','detaylar'] 
+
+
+#Tüm siparisleri serializers yapmak için kullanıyor.
+class RegisterSiparislerList(serializers.ModelSerializer):
+    class Meta: 
+        model =Siparisimler
+        fields = ["id","siparis_tarihi","toplam_tutar"]

@@ -56,26 +56,42 @@ class Sepet(models.Model):
     def toplam_fiyat(self):
         return self.adet * self.kitap.kitap_fiyat
     
+
 class AdresBilgileri(models.Model):
     musteri = models.ForeignKey(User,on_delete=models.CASCADE)
     ad = models.CharField(max_length=50)
     soyad = models.CharField(max_length=50)
     sehir = models.CharField(max_length=20)
-    ilce = models.CharField(max_length=30)
+    ilce = models.CharField(max_length=30)  
     ev_adres = models.TextField() 
-    telefon_numarisi = models.CharField(max_length=10)
-
+    telefon_numarisi = models.CharField(max_length=10,)
+    kart_numarisi = models.CharField(max_length=16,null=True, blank=True)
+    cvv = models.CharField(max_length=3,null=True, blank=True)
+    son_kullanma_tarihi = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.musteri}-- {self.ad} {self.soyad} --{self.ev_adres}"
-    
+ 
 
-class OdemeBilgileri(models.Model):
-    adres = models.ForeignKey(AdresBilgileri,on_delete=models.CASCADE) 
-    kullanici = models.ForeignKey(User,on_delete=models.CASCADE)
-    kart_numarisi = models.CharField(max_length=16)
-    cvv = models.CharField(max_length=3)
-    son_kullanma_tarihi = models.DateField()
+class Siparisimler(models.Model):
+    musteri = models.ForeignKey(User, on_delete=models.CASCADE)
+    siparis_tarihi = models.DateTimeField(auto_now_add=True)
+    toplam_tutar = models.DecimalField(max_digits=10,decimal_places=2)
+    adres = models.ForeignKey(AdresBilgileri,on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return f"{self.musteri}--- {self.siparis_tarihi}--- {self.toplam_tutar}"
+    
+class SiparisDetay(models.Model):
+    siparis = models.ForeignKey(Siparisimler,on_delete=models.CASCADE,related_name='detaylar') #related_name koymamızın sebebi Siparisimlerden direkt siparisDetaya erişmek istediğimiz variable name atıyoruz.
+    kitap = models.ForeignKey(KitapOlusturma, on_delete=models.CASCADE)
+    adet = models.IntegerField(default=1)
+    fiyat = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.kitap.kitap_ismi} --- {self.adet} --- {self.fiyat}"
+   
 
 
 

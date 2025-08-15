@@ -2,8 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status,permissions
 from rest_framework.permissions import IsAuthenticated
-from .models import ProfilYayinci,KitapOlusturma,Sepet
-from .serializers import RegisterSerializers,RegisterYayinci,RegisterKitapOlusturma, RegisterSepet,RegisterOdemeBilgileri,RegisterAdresBilgileri#aynı dosyadan import ettğimiz için .serializers koyduk.
+from django.db import transaction
+from .models import ProfilYayinci,KitapOlusturma,Sepet,AdresBilgileri,Siparisimler,SiparisDetay
+from .serializers import RegisterSerializers,RegisterYayinci,RegisterKitapOlusturma, RegisterSepet,RegisterAdresveOdemeBilgileri,RegisterSiparisDetay,RegisterSiparis,RegisterSiparislerList#aynı dosyadan import ettğimiz için .serializers koyduk.
 from .services import kitap_önerilerini_alma
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
@@ -129,21 +130,14 @@ class SepetEkeleme(APIView):
 class SatinAlView(APIView):
     permission_classes = [IsAuthenticated]
 
-
+    @transaction.atomic #bu herhangi bir adımda işlem hata verirse direkt tüm işlemleri geri alıyoruz eski haline dondurmus oluyoruz.
     def post(self,request):
+        try:
+            adres_bilgiler = AdresBilgileri.objects.get(musteri=request.user)
+        except AdresBilgileri.DoesNotExist:
+            return Response({"message":"İlk önce adres ve odeme bilgilerinizi giriniz.Bilgilerim kısmından."})
 
-        adres_serializer = RegisterAdresBilgileri(data=request.data.get('adres'))
-        odeme_serializer = RegisterOdemeBilgileri(data=request.data.get('odeme'))
-
-        if not adres_serializer.is_valid():
-            return Response(adres_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        if not odeme_serializer.is_valid():
-            return Response(odeme_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        adres = adres_serializer.save(musteri=request.user)
-        odeme = odeme_serializer.save(kullanici=request.user, adres=adres)
-        
-        sepet_ogeleri= Sepet.objects.get(musteri=request.user)
+        sepet_ogeleri= Sepet.objects.filter(musteri=request.user)
         if not sepet_ogeleri.exists(): 
             return Response({"detail":"Sepetiniz boş"},status=status.HTTP_400_BAD_REQUEST)
         
@@ -151,9 +145,23 @@ class SatinAlView(APIView):
             kitap = oge.kitap
             if kitap.stok_adedi < oge.adet:
                 return Response({"detail":f"{kitap.kitap_ismi} kitabın stok adedini kontrol ediniz."},status=status.HTTP_400_BAD_REQUEST)
-            
+
+        toplam_tutar = sum(oge.kitap.kitap_fiyat * oge.adet for oge in sepet_ogeleri)
+
+
+        yeni_siparis = Siparisimler.objects.create(
+            musteri = request.user,
+            adres = adres_bilgiler,
+            toplam_tutar= toplam_tutar
+        )
 
         for oge in sepet_ogeleri:
+            SiparisDetay.objects.create(
+                siparis = yeni_siparis,
+                kitap = oge.kitap,
+                fiyat = oge.kitap.kitap_fiyat,
+                adet = oge.adet
+            )
             kitap = oge.kitap
             kitap.stok_adedi -= oge.adet #kitabın stok adedini düşürüyoruz.
             kitap.save()
@@ -205,6 +213,54 @@ class FiltrelemeView(APIView):
         return Response(serializers.data,status=status.HTTP_200_OK)#get isteklerin sonucunda status code'a gerek olmayabilir ama yine de 200 döndürebiliriz.
 
 
+class BilgilerimView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        try:
+            adres = AdresBilgileri.objects.get(musteri=request.user)
+            serializers = RegisterAdresveOdemeBilgileri(adres)
+            return Response(serializers.data)
+        except AdresBilgileri.DoesNotExist:
+            return Response("Kayıtlı Adres ve Ödeme Bilgileri Bulunmamaktadır.",status=status.HTTP_404_NOT_FOUND)
+        
+    def post(self,request):
+        try:
+            adres = AdresBilgileri.objects.get(musteri=request.user)
+            serializers = RegisterAdresveOdemeBilgileri(adres, data=request.data)
+        except AdresBilgileri.DoesNotExist:
+            serializers = RegisterAdresveOdemeBilgileri(data=request.data)
+        
+        if serializers.is_valid():
+            serializers.save(musteri=request.user)
+            return Response({'message':'Bilgileriniz başarılı bir şekilde kayıt olmuştur.'},status=status.HTTP_201_CREATED)
+        
+        return Response(serializers.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+
+            
+class SiparislerimView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        siparisler = Siparisimler.objects.filter(musteri=request.user).order_by('-siparis_tarihi')
+
+        serializers = RegisterSiparislerList(siparisler,many=True)
+
+        return Response(serializers.data,status=status.HTTP_200_OK)
+
+
+class SiparisDetayView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,kitap_id):        
+        try:
+            siparis = Siparisimler.objects.get(id=kitap_id,musteri=request.user)
+        except Siparisimler.DoesNotExist:
+            return Response({'detail':"Siparis bulunamdı"},status=status.HTTP_404_NOT_FOUND)
+
+        serializers = RegisterSiparis(siparis)
+        return Response (serializers.data,status=status.HTTP_200_OK)
+    
 
 
 

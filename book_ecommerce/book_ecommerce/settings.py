@@ -31,6 +31,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG')
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -38,6 +40,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [  
     "shop.apps.ShopConfig",
     "rest_framework",
+    "corsheaders",
     "rest_framework_simplejwt.token_blacklist",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -48,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -75,6 +79,10 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKEN":True,
 }
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:8000",
+]
 
 ROOT_URLCONF = 'book_ecommerce.urls'
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ProfilYayinci,KitapOlusturma,User
+from .models import ProfilYayinci,KitapOlusturma,User,AdresBilgileri
 from django.contrib.auth.admin import UserAdmin
 
 admin.site.unregister(User)
@@ -26,4 +26,5 @@ class ProfilYayinciAdmin(admin.ModelAdmin):
     list_display = ["user","yayinci_ismi","yayinci_kodu"]
 
 admin.site.register(KitapOlusturma)
+admin.site.register(AdresBilgileri)
 # Register your models here.
