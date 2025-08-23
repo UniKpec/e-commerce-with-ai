@@ -135,7 +135,7 @@ class SatinAlView(APIView):
         try:
             adres_bilgiler = AdresBilgileri.objects.get(musteri=request.user)
         except AdresBilgileri.DoesNotExist:
-            return Response({"message":"İlk önce adres ve odeme bilgilerinizi giriniz.Bilgilerim kısmından."})
+            return Response({"message":"İlk önce adres ve odeme bilgilerinizi giriniz.Bilgilerim kısmından."},status=status.HTTP_400_BAD_REQUEST)
 
         sepet_ogeleri= Sepet.objects.filter(musteri=request.user)
         if not sepet_ogeleri.exists(): 
@@ -252,9 +252,9 @@ class SiparislerimView(APIView):
 class SiparisDetayView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self,request,kitap_id):        
+    def get(self,request,siparis_id):        
         try:
-            siparis = Siparisimler.objects.get(id=kitap_id,musteri=request.user)
+            siparis = Siparisimler.objects.get(id=siparis_id,musteri=request.user)
         except Siparisimler.DoesNotExist:
             return Response({'detail':"Siparis bulunamdı"},status=status.HTTP_404_NOT_FOUND)
 

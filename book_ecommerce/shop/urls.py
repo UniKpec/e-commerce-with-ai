@@ -19,6 +19,6 @@ urlpatterns = [
     path("musteri/sepet_liste/",SepetiListeleView.as_view(),name="musteri-sepet-liste"),
     path("musteri/satin_al/",SatinAlView.as_view(),name="musteri-satin-al"),
     path("musteri/sepetten_kitap_sil/<int:kitap_id>/",SepettenVeriSilme.as_view(),name="sepetten-kitap-silme"),
-    path("siparislerim",SiparislerimView.as_view(),name="musteri-siparis"),
-    path("siparis_detay/<int:siparis_id>",SiparisDetayView.as_view(),name="siparis-detay")
+    path("siparislerim/",SiparislerimView.as_view(),name="musteri-siparis"),
+    path("siparis_detay/<int:siparis_id>/",SiparisDetayView.as_view(),name="siparis-detay"),
 ]

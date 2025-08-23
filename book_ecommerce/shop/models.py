@@ -18,11 +18,11 @@ class ProfilYayinci(models.Model):
 class KitapOlusturma(models.Model):
     kitapTuru = [ #tuple içinde vermemiz lazım.İlk veritabanına kaydetme,ikinci isim frontende gözükecek alan.
         ("ROMAN","Roman"),
-        ("HİKAYE","Hikaye"),
+        ("HIKAYE","Hikaye"),
         ("DENEME","deneme"),
-        ("SİİR","Şiir"),
+        ("SIIR","Şiir"),
         ("BILIM","Bilim"),
-        ("CIZGIROMAN","Çizgi roman"),
+        ("CIZGI_ROMAN","Çizgi roman"),
         ("EKONOMI","Ekonomi"),
         ("FELSEFE","Felsefe"),
     ]

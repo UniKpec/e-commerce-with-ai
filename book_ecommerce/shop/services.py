@@ -10,13 +10,7 @@ def kitap_önerilerini_alma(kitap_yazar, kitap_turu, kitap_sayfa):
 
     model = GenerativeModel("gemini-1.5-flash")
     
-    prompt = (
-        f"Kullanıcının tercihine göre, kitap türü '{kitap_turu}', yazar tarzı '{kitap_yazar}' "
-        f"ve yaklaşık sayfa sayısı '{kitap_sayfa}' olan 3 tane benzersiz kitap öner. "
-        f"Her bir öneri için kitap adını ('book_title') ve en az 30 kelimelik, "
-        f"kitabı anlatan, ilgi çekici **Türkçe** bir açıklamasını ('book_description') ekle. "
-        f"Yanıtını sadece aşağıdaki formatta, bir JSON listesi olarak döndür:"
-    )
+    prompt = (f"Kullanıcının tercihine göre, kitap türü '{kitap_turu}', yazar tarzı '{kitap_yazar}' ve yaklaşık sayfa sayısı '{kitap_sayfa}' olan 3 tane benzersiz Gerçek yazarı olan gerçek kitaplar öner.Her bir öneri için kitap adını ('book_title') ve en az detaylı 50 kelimelik,kitabı anlatan, ilgi çekici **Türkçe** bir açıklamasını ('book_description') ekle.Kesinlikle book_title ve book_description olsun.Yanıtını sadece aşağıdaki formatta, bir JSON listesi olarak döndür:")
     
     try:
         response = model.generate_content(

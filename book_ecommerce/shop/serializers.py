@@ -177,12 +177,12 @@ class RegisterAdresveOdemeBilgileri(serializers.ModelSerializer):
 #Siparisteki tek bir ürünün bilgilerini vermek için
 class RegisterSiparisDetay(serializers.ModelSerializer):
 
-    kitap_ismi = serializers.CharField(source = 'kitap.kitap_ismi',read_only=True)
-    kitap_fotografı = serializers.CharField(source = 'kitap.kitap_fotografı')
+    kitap_ismi = serializers.CharField(source='kitap.kitap_ismi',read_only=True)
+    kitap_fotografı = serializers.CharField(source='kitap.kitap_fotografı',read_only = True)
 
     class Meta:
         model = SiparisDetay
-        fields = ['kitap_ismi','kitap_fotoğrafı','adet','fiyat']
+        fields = ['kitap_ismi','kitap_fotografı','adet','fiyat']
 
 #tek bir siparisteki ürünleri vermek için
 class RegisterSiparis(serializers.ModelSerializer):
